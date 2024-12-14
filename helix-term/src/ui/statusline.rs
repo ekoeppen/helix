@@ -55,17 +55,32 @@ pub fn render(context: &mut RenderContext, viewport: Rect, surface: &mut Surface
     } else {
         context.editor.theme.get("ui.statusline.inactive")
     };
+    let left_style = if context.focused {
+        context.editor.theme.get("ui.statusline.left")
+    } else {
+        base_style
+    };
+    let center_style = if context.focused {
+        context.editor.theme.get("ui.statusline.center")
+    } else {
+        base_style
+    };
+    let right_style = if context.focused {
+        context.editor.theme.get("ui.statusline.right")
+    } else {
+        base_style
+    };
 
     surface.set_style(viewport.with_height(1), base_style);
 
     let write_left = |context: &mut RenderContext, text, style| {
-        append(&mut context.parts.left, text, &base_style, style)
+        append(&mut context.parts.left, text, &left_style, style)
     };
     let write_center = |context: &mut RenderContext, text, style| {
-        append(&mut context.parts.center, text, &base_style, style)
+        append(&mut context.parts.center, text, &center_style, style)
     };
     let write_right = |context: &mut RenderContext, text, style| {
-        append(&mut context.parts.right, text, &base_style, style)
+        append(&mut context.parts.right, text, &right_style, style)
     };
 
     // Left side of the status line.
