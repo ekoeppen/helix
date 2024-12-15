@@ -1,12 +1,9 @@
 name: Build
 on:
-  pull_request:
   push:
     branches:
       - master
-  merge_group:
-  schedule:
-    - cron: "00 01 * * *"
+  workflow_dispatch:
 
 env:
   MSRV: "1.76"
@@ -15,7 +12,6 @@ jobs:
   check:
     name: Check (msrv)
     runs-on: ubuntu-latest
-    if: github.repository == 'helix-editor/helix' || github.event_name != 'schedule'
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
@@ -34,8 +30,7 @@ jobs:
 
   test:
     name: Test Suite
-    runs-on: ${{ matrix.os }}
-    if: github.repository == 'helix-editor/helix' || github.event_name != 'schedule'
+    runs-on: ubuntu-latest
     env:
       RUST_BACKTRACE: 1
       HELIX_LOG_LEVEL: info
@@ -65,14 +60,9 @@ jobs:
       - name: Run cargo integration-test
         run: cargo integration-test
 
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-
   lints:
     name: Lints
     runs-on: ubuntu-latest
-    if: github.repository == 'helix-editor/helix' || github.event_name != 'schedule'
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
@@ -98,10 +88,9 @@ jobs:
         env:
           RUSTDOCFLAGS: -D warnings
 
-  docs:
-    name: Docs
+  build:
+    name: Build
     runs-on: ubuntu-latest
-    if: github.repository == 'helix-editor/helix' || github.event_name != 'schedule'
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
@@ -115,18 +104,14 @@ jobs:
         with:
           shared-key: "build"
 
-      - name: Validate queries
-        run: cargo xtask query-check
+      - name: Run cargo build
+        run: cargo build --profile release
 
-      - name: Validate themes
-        run: cargo xtask theme-check
-
-      - name: Generate docs
-        run: cargo xtask docgen
-
-      - name: Check uncommitted documentation changes
-        run: |
-          git diff
-          git diff-files --quiet \
-            || (echo "Run 'cargo xtask docgen', commit the changes and push again" \
-            && exit 1)
+      - name: Store artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hx
+          path: |
+            target/release/hx
+            runtime
+            ! runtime/gammar/sources
