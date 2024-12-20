@@ -1,6 +1,9 @@
 use std::path::{Path, PathBuf};
 
 pub enum FileChange {
+    Added {
+        path: PathBuf,
+    },
     Untracked {
         path: PathBuf,
     },
@@ -22,6 +25,7 @@ pub enum FileChange {
 impl FileChange {
     pub fn path(&self) -> &Path {
         match self {
+            Self::Added { path } => path,
             Self::Untracked { path } => path,
             Self::Modified { path } => path,
             Self::Conflict { path } => path,
